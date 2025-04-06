@@ -88,7 +88,6 @@ WITH user_active_sequence AS (
   -- 1. 유저별 활동 일자 시퀀스: 유입 일자, 활동 일자, 직전 활동 일자
   SELECT DISTINCT
     user_pseudo_id,
-    FIRST_VALUE(event_date) OVER (PARTITION BY user_pseudo_id ORDER BY event_date) AS first_event_date,
     event_date,
     LAG(event_date) OVER (PARTITION BY user_pseudo_id ORDER BY event_date) AS prev_event_date,
   FROM advanced.app_logs_cleaned_target
@@ -105,6 +104,7 @@ FROM (
     prev_event_date,
     IFNULL(DATE_DIFF(event_date, prev_event_date, DAY),0) AS day_diff
   FROM user_active_sequence
+  WHERE prev_event_date IS NOT NULL  -- 유입일 이전 제외
 )
 WHERE day_diff != 0 
 ORDER BY user_pseudo_id, event_date
