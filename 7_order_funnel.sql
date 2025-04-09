@@ -96,7 +96,6 @@ WITH one_day_user_logs AS (
     'search_result: click_restaurant','restaurant: click_food','food_detail: click_cart', 
     'cart: click_recommend_extra_food','cart: click_payment'
   )  -- 퍼널에 사용할 'firebase_screen: event_name' 조합만 추출
-  
 )
 
 , one_day_funnel_annot AS (
@@ -145,6 +144,7 @@ WITH one_day_user_logs AS (
 -- 주문 퍼널 전환율 (이탈율) 계산: 전체 기간
 -- 오픈 퍼널이므로 '첫 단계 대비 전환율' 계산 (↔ 이전 단계 대비 전환율)
 SELECT
+  'one_day' AS user_segment,
   funnel_step,
   funnel_users,
   tot_users,
@@ -240,6 +240,7 @@ WITH revisit_user_logs AS (
 -- 주문 퍼널 전환율 (이탈율) 계산: 전체 기간
 -- 오픈 퍼널이므로 '첫 단계 대비 전환율' 계산 (↔ 이전 단계 대비 전환율)
 SELECT
+  'revisit' AS user_segment,
   funnel_step,
   funnel_users,
   tot_users,
@@ -249,4 +250,284 @@ CROSS JOIN revisit_tot
 ORDER BY funnel_step ASC
 
 
+
+
+/* 주문 퍼널: 단기 재방문 유저 */
+
+WITH short_user_logs AS (
+  -- 1) 단기 재방문 유저의 로그
+  -- 단기 재방문 유저 전체 인원인 명, 분석 대상 로그 수 건
+  SELECT
+    *
+  FROM (
+    SELECT
+      event_datetime,
+      event_date,
+      event_time,
+      event_week,
+      event_dow,
+      user_pseudo_id,
+      user_id,
+      firebase_screen,
+      event_name,
+      CONCAT(firebase_screen, ": ", event_name) AS screen_event,
+    FROM advanced.app_logs_cleaned_target
+    WHERE 1=1
+    AND user_pseudo_id IN (
+      SELECT user_pseudo_id
+      FROM advanced.app_logs_target_visit_seg
+      WHERE visit_interval_cat = 'short'
+    )
+  )
+  WHERE 1=1
+  AND screen_event IN (
+    'home: screen_view','home: click_food_category', 
+    'home: click_recommend_food','home: click_restaurant_nearby','home: click_search', 
+    'home: click_banner','food_category: click_restaurant','search: request_search', 
+    'search_result: click_restaurant','restaurant: click_food','food_detail: click_cart', 
+    'cart: click_recommend_extra_food','cart: click_payment'
+  )  -- 퍼널에 사용할 'firebase_screen: event_name' 조합만 추출
+)
+
+, short_funnel_annot AS (
+  -- 2) 퍼널 단계 표시
+  -- 분석 대상 로그 수 건
+  SELECT
+    event_datetime,
+    event_date,
+    event_time,
+    event_week,
+    event_dow,
+    user_pseudo_id,
+    user_id,
+    firebase_screen,
+    event_name,
+    screen_event,
+    CASE
+      WHEN screen_event IN ('home: screen_view') THEN 1  -- 방문
+      WHEN screen_event IN ('home: click_food_category','home: click_recommend_food','home: click_restaurant_nearby',
+                          'home: click_search','home: click_banner','food_category: click_restaurant',
+                          'search: request_search','search_result: click_restaurant','restaurant: click_food') THEN 2  -- 탐색
+      WHEN screen_event IN ('food_detail: click_cart','cart: click_recommend_extra_food') THEN 3  -- 장바구니
+      WHEN screen_event IN ('cart: click_payment') THEN 4  -- 결제
+      ELSE 0  -- 이상치 처리 (해당 케이스 없음)
+    END AS funnel_step,
+  FROM short_user_logs
+)
+, short_tot AS (
+  -- 3-1) 전체 인원 따로 계산 (전환율 계산용)
+  SELECT COUNT(DISTINCT user_pseudo_id) AS tot_users
+  FROM short_funnel_annot
+)
+, short_funnel_cnt AS (
+  -- 3-2) 각 퍼널 단계 인원 계산
+  SELECT
+    funnel_step,
+    COUNT(DISTINCT user_pseudo_id) AS funnel_users,
+  FROM short_funnel_annot
+  WHERE funnel_step != 0
+  GROUP BY funnel_step
+  ORDER BY funnel_step
+)
+
+
+-- 4) 전환율 및 최종 결과 추출
+-- 주문 퍼널 전환율 (이탈율) 계산: 전체 기간
+-- 오픈 퍼널이므로 '첫 단계 대비 전환율' 계산 (↔ 이전 단계 대비 전환율)
+SELECT
+  'short' AS user_segment,
+  funnel_step,
+  funnel_users,
+  tot_users,
+  ROUND(SAFE_DIVIDE(funnel_users, tot_users),3) AS conversion_rate
+FROM short_funnel_cnt
+CROSS JOIN short_tot
+ORDER BY funnel_step ASC
+
+
+/* 주문 퍼널: 중기 재방문 유저 */
+
+WITH mid_user_logs AS (
+  -- 1) 중기 재방문 유저의 로그
+  -- 중기 재방문 유저 전체 인원인 명, 분석 대상 로그 수 건
+  SELECT
+    *
+  FROM (
+    SELECT
+      event_datetime,
+      event_date,
+      event_time,
+      event_week,
+      event_dow,
+      user_pseudo_id,
+      user_id,
+      firebase_screen,
+      event_name,
+      CONCAT(firebase_screen, ": ", event_name) AS screen_event,
+    FROM advanced.app_logs_cleaned_target
+    WHERE 1=1
+    AND user_pseudo_id IN (
+      SELECT user_pseudo_id
+      FROM advanced.app_logs_target_visit_seg
+      WHERE visit_interval_cat = 'mid'
+    )
+  )
+  WHERE 1=1
+  AND screen_event IN (
+    'home: screen_view','home: click_food_category', 
+    'home: click_recommend_food','home: click_restaurant_nearby','home: click_search', 
+    'home: click_banner','food_category: click_restaurant','search: request_search', 
+    'search_result: click_restaurant','restaurant: click_food','food_detail: click_cart', 
+    'cart: click_recommend_extra_food','cart: click_payment'
+  )  -- 퍼널에 사용할 'firebase_screen: event_name' 조합만 추출
+)
+
+, mid_funnel_annot AS (
+  -- 2) 퍼널 단계 표시
+  -- 분석 대상 로그 수 건
+  SELECT
+    event_datetime,
+    event_date,
+    event_time,
+    event_week,
+    event_dow,
+    user_pseudo_id,
+    user_id,
+    firebase_screen,
+    event_name,
+    screen_event,
+    CASE
+      WHEN screen_event IN ('home: screen_view') THEN 1  -- 방문
+      WHEN screen_event IN ('home: click_food_category','home: click_recommend_food','home: click_restaurant_nearby',
+                          'home: click_search','home: click_banner','food_category: click_restaurant',
+                          'search: request_search','search_result: click_restaurant','restaurant: click_food') THEN 2  -- 탐색
+      WHEN screen_event IN ('food_detail: click_cart','cart: click_recommend_extra_food') THEN 3  -- 장바구니
+      WHEN screen_event IN ('cart: click_payment') THEN 4  -- 결제
+      ELSE 0  -- 이상치 처리 (해당 케이스 없음)
+    END AS funnel_step,
+  FROM mid_user_logs
+)
+, mid_tot AS (
+  -- 3-1) 전체 인원 따로 계산 (전환율 계산용)
+  SELECT COUNT(DISTINCT user_pseudo_id) AS tot_users
+  FROM mid_funnel_annot
+)
+, mid_funnel_cnt AS (
+  -- 3-2) 각 퍼널 단계 인원 계산
+  SELECT
+    funnel_step,
+    COUNT(DISTINCT user_pseudo_id) AS funnel_users,
+  FROM mid_funnel_annot
+  WHERE funnel_step != 0
+  GROUP BY funnel_step
+  ORDER BY funnel_step
+)
+
+
+-- 4) 전환율 및 최종 결과 추출
+-- 주문 퍼널 전환율 (이탈율) 계산: 전체 기간
+-- 오픈 퍼널이므로 '첫 단계 대비 전환율' 계산 (↔ 이전 단계 대비 전환율)
+SELECT
+  'mid' AS user_segment,
+  funnel_step,
+  funnel_users,
+  tot_users,
+  ROUND(SAFE_DIVIDE(funnel_users, tot_users),3) AS conversion_rate
+FROM mid_funnel_cnt
+CROSS JOIN mid_tot
+ORDER BY funnel_step ASC
+
+
+
+/* 주문 퍼널: 장기 재방문 유저 */
+
+WITH long_user_logs AS (
+  -- 1) 장기 재방문 유저의 로그
+  -- 장기 재방문 유저 전체 인원인 명, 분석 대상 로그 수 건
+  SELECT
+    *
+  FROM (
+    SELECT
+      event_datetime,
+      event_date,
+      event_time,
+      event_week,
+      event_dow,
+      user_pseudo_id,
+      user_id,
+      firebase_screen,
+      event_name,
+      CONCAT(firebase_screen, ": ", event_name) AS screen_event,
+    FROM advanced.app_logs_cleaned_target
+    WHERE 1=1
+    AND user_pseudo_id IN (
+      SELECT user_pseudo_id
+      FROM advanced.app_logs_target_visit_seg
+      WHERE visit_interval_cat = 'long'
+    )
+  )
+  WHERE 1=1
+  AND screen_event IN (
+    'home: screen_view','home: click_food_category', 
+    'home: click_recommend_food','home: click_restaurant_nearby','home: click_search', 
+    'home: click_banner','food_category: click_restaurant','search: request_search', 
+    'search_result: click_restaurant','restaurant: click_food','food_detail: click_cart', 
+    'cart: click_recommend_extra_food','cart: click_payment'
+  )  -- 퍼널에 사용할 'firebase_screen: event_name' 조합만 추출
+)
+
+, long_funnel_annot AS (
+  -- 2) 퍼널 단계 표시
+  -- 분석 대상 로그 수 건
+  SELECT
+    event_datetime,
+    event_date,
+    event_time,
+    event_week,
+    event_dow,
+    user_pseudo_id,
+    user_id,
+    firebase_screen,
+    event_name,
+    screen_event,
+    CASE
+      WHEN screen_event IN ('home: screen_view') THEN 1  -- 방문
+      WHEN screen_event IN ('home: click_food_category','home: click_recommend_food','home: click_restaurant_nearby',
+                          'home: click_search','home: click_banner','food_category: click_restaurant',
+                          'search: request_search','search_result: click_restaurant','restaurant: click_food') THEN 2  -- 탐색
+      WHEN screen_event IN ('food_detail: click_cart','cart: click_recommend_extra_food') THEN 3  -- 장바구니
+      WHEN screen_event IN ('cart: click_payment') THEN 4  -- 결제
+      ELSE 0  -- 이상치 처리 (해당 케이스 없음)
+    END AS funnel_step,
+  FROM long_user_logs
+)
+, long_tot AS (
+  -- 3-1) 전체 인원 따로 계산 (전환율 계산용)
+  SELECT COUNT(DISTINCT user_pseudo_id) AS tot_users
+  FROM long_funnel_annot
+)
+, long_funnel_cnt AS (
+  -- 3-2) 각 퍼널 단계 인원 계산
+  SELECT
+    funnel_step,
+    COUNT(DISTINCT user_pseudo_id) AS funnel_users,
+  FROM long_funnel_annot
+  WHERE funnel_step != 0
+  GROUP BY funnel_step
+  ORDER BY funnel_step
+)
+
+
+-- 4) 전환율 및 최종 결과 추출
+-- 주문 퍼널 전환율 (이탈율) 계산: 전체 기간
+-- 오픈 퍼널이므로 '첫 단계 대비 전환율' 계산 (↔ 이전 단계 대비 전환율)
+SELECT
+  'long' AS user_segment,
+  funnel_step,
+  funnel_users,
+  tot_users,
+  ROUND(SAFE_DIVIDE(funnel_users, tot_users),3) AS conversion_rate
+FROM long_funnel_cnt
+CROSS JOIN long_tot
+ORDER BY funnel_step ASC
 
