@@ -4,16 +4,7 @@
 1. 퍼널 분석을 적용할 그룹 단위
 
 - 그룹 1: 일회성 유저 vs. 재방문 유저
-- 그룹 2: 주문 내역 유 vs. 주문 내역 무
-
-- 일회성 + 주문 유
-- 일회성 + 주문 무
-- 재방문(단기) + 주문 유
-- 재방문(단기) + 주문 무
-- 재방문(중기) + 주문 유
-- 재방문(중기) + 주문 무
-- 재방문(장기) + 주문 유
-- 재방문(장기) + 주문 무
+- 그룹 2: 단기 재방문 vs. 중기 재방문 vs. 장기 재방문
 
 
 2. 전제조건
@@ -191,7 +182,6 @@ WITH revisit_user_logs AS (
     'search_result: click_restaurant','restaurant: click_food','food_detail: click_cart', 
     'cart: click_recommend_extra_food','cart: click_payment'
   )  -- 퍼널에 사용할 'firebase_screen: event_name' 조합만 추출
-  
 )
 
 , revisit_funnel_annot AS (
