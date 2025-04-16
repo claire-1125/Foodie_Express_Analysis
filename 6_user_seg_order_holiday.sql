@@ -1,9 +1,10 @@
 CREATE OR REPLACE PROCEDURE `inflearn-bigquery-439112.advanced.app_logs_target_segment_order_holiday`()
+
 BEGIN
 
 CREATE OR REPLACE TABLE advanced.app_logs_target_order_seg AS
 
-/* 주문수, 연휴 주문수 계산 */
+/* 주문 내역 여부에 따른 주문수, 연휴 주문수 계산 */
 
 WITH dau_list AS (
   SELECT
@@ -44,12 +45,12 @@ WITH dau_list AS (
 
 -- 주문한 적 있는 유저 11467명
 SELECT
+  'ordered'AS user_segment,
   user_pseudo_id, 
   COUNT(DISTINCT event_date) AS visit_day_cnt,
   COUNT(DISTINCT IF(event_name='click_payment', event_date, NULL)) AS order_day_cnt,
   COUNT(DISTINCT IF((event_name='click_payment') AND (event_date NOT IN (SELECT * FROM holiday)), event_date, NULL)) AS order_normal_cnt,
   COUNT(DISTINCT IF((event_name='click_payment') AND (event_date IN (SELECT * FROM holiday)), event_date, NULL)) AS order_holiday_cnt,
-  -- ROUND(SAFE_DIVIDE(COUNT(DISTINCT IF(event_name='click_payment', event_date, NULL)), COUNT(DISTINCT event_date)) * 100, 3) AS order_ratio,
 FROM advanced.app_logs_cleaned_target
 WHERE user_pseudo_id IN (
   SELECT DISTINCT
@@ -63,6 +64,7 @@ UNION DISTINCT
 
 -- 주문한 적 없는 유저 38211명
 SELECT
+  'non_ordered'AS user_segment,
   user_pseudo_id,
   COUNT(DISTINCT event_date) AS visit_day_cnt,
   0 AS order_day_cnt,
@@ -78,4 +80,4 @@ WHERE user_pseudo_id NOT IN (
 GROUP BY user_pseudo_id;
 
 
-END;
+END
