@@ -1,4 +1,4 @@
-# 음식 배달 앱 로그 데이터 분석 프로젝트
+# 🍲🛵 음식 배달 앱 로그 데이터 분석 프로젝트
 
 ## 목차
 
@@ -15,7 +15,8 @@
 ## 프로젝트 개요
 
 - **분석 기간:** 2025.03~2025.04 (1.5개월)  
-- **기술 스택:** BigQuery, Python (Seaborn, Plotly)
+- **기술 스택:** <img src="https://img.shields.io/badge/BigQuery-669DF6?style=flat-square&logo=BigQuery&logoColor=white"> <img src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=Python&logoColor=white"/> <img src="https://img.shields.io/badge/Seaborn-669DF6.svg?style=plat-sqaure&logo=Seaborn&logoColor=white"/> <img src="https://img.shields.io/badge/plotly-3F4F75.svg?style=plat-sqaure&logo=plotly&logoColor=white"/>
+
 - **목적:** 음식 배달 앱 로그 데이터를 가지고 문제 정의 및 가설 검증을 통해 주문율 개선 전략 도출
 - **원천 데이터:** [가상의 앱 로그 데이터 (73만 건)](https://bit.ly/inflearn_bigquery_advanced)
 - **작업 대상:** 2022년 8월~2023년 1월 (약 6개월)
