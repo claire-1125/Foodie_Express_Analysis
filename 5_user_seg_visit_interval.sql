@@ -4,16 +4,18 @@ BEGIN
 CREATE OR REPLACE TABLE advanced.app_logs_target_visit_seg AS
 
 /*
-방문 주기 구분
-- 하루만 방문한 사람 (재방문 X)
-- 단기 재방문자 (7~14일 간격)
-- 중기 재방문자 (15~30일 간격)
-- 장기 재방문자 (30일 초과)
+회원 유저를 다음과 같은 기준으로 구분하였다.
+
+[방문 주기 구분]
+- 일회성 유저 (재방문 X)
+- 단기 재방문 유저 (7~14일 간격)
+- 중기 재방문 유저 (15~30일 간격)
+- 장기 재방문 유저 (30일 초과)
 */
 
 WITH user_active_sequence AS (
   -- 1. 유저별 활동 일자 시퀀스: 유입 일자, 활동 일자, 직전 활동 일자
-  -- 회원 49678명
+  -- 회원 유저 전체 49678명
   SELECT DISTINCT
     user_pseudo_id,
     event_date,
@@ -21,7 +23,7 @@ WITH user_active_sequence AS (
   FROM advanced.app_logs_cleaned_target
 )
 , user_only_1day AS (
-  -- 2-1. 정합성 검증: 하루만 사용하고 이탈한 사람 13151명
+  -- 2-1. 정합성 검증: 일회성 유저 13151명
   SELECT DISTINCT
     user_pseudo_id,
   FROM advanced.app_logs_cleaned_target
@@ -41,9 +43,9 @@ WITH user_active_sequence AS (
     DATE_DIFF(event_date, prev_event_date, DAY) AS day_diff,
     ROW_NUMBER() OVER (PARTITION BY user_pseudo_id ORDER BY event_date DESC) AS visit_interval_order,  -- 방문 간격 순서 (맨 마지막을 1로 둠.)
     CASE
-      WHEN DATE_DIFF(event_date, prev_event_date, DAY) <= 14 THEN 'short'
-      WHEN DATE_DIFF(event_date, prev_event_date, DAY) BETWEEN 15 AND 30 THEN 'mid'
-      ELSE 'long'
+      WHEN DATE_DIFF(event_date, prev_event_date, DAY) <= 14 THEN 'short'  -- 단기 재방문
+      WHEN DATE_DIFF(event_date, prev_event_date, DAY) BETWEEN 15 AND 30 THEN 'mid'  -- 중기 재방문
+      ELSE 'long'  -- 장기 재방문
     END AS visit_interval_cat,
   FROM user_active_sequence
   WHERE 1=1
@@ -72,7 +74,7 @@ WITH user_active_sequence AS (
 )
 
 
--- 한번만 방문한 유저 (13151명)
+-- 일회성 유저 (13151명)
 SELECT
   user_pseudo_id,
   'one_day' AS visit_interval_cat,
@@ -81,6 +83,7 @@ FROM user_only_1day
 UNION DISTINCT
 
 -- 최빈 방문 간격 유형이 하나인 경우: 바로 분류 (26370명)
+-- e.g.) 유저 A: short 3회, mid 1회, long 1회 → short-term user
 SELECT
   user_pseudo_id,
   visit_interval_cat,
@@ -95,6 +98,7 @@ WHERE user_pseudo_id IN (
 UNION DISTINCT
 
 -- 최빈 방문 간격 유형이 여러 개인 경우: 최신 방문 간격 유형으로 분류 (10157명)
+-- e.g.) 유저 B: short 2회, mid 2회, long 1회 / 가장 마지막 방문 간격이 mid → mid-term user
 SELECT
   user_pseudo_id,
   visit_interval_cat,
