@@ -5,7 +5,11 @@ CREATE OR REPLACE TABLE advanced.app_logs_cleaned_target
 PARTITION BY event_date
 AS
 
+  -- user_id: NULL 존재
+  -- user_pseudo_id: NUL 없음
+
   WITH user_mapping_list AS (
+    -- user_id NULL 케이스 포함
     SELECT DISTINCT
       user_id,
       user_pseudo_id
@@ -22,6 +26,7 @@ AS
     FROM user_mapping_list
   )
   , identified_device AS (
+    -- user_id NOT NULL, user_pseudo_id NOT NULL
     SELECT
       DISTINCT user_pseudo_id
     FROM user_mapping_annot
@@ -29,6 +34,7 @@ AS
   )
 
   , anonymous_device AS (
+    -- user_id NULL, user_pseudo_id NOT NULL
     SELECT
       DISTINCT user_pseudo_id
     FROM user_mapping_annot
@@ -36,7 +42,8 @@ AS
   )
 
   , i_a_both AS (
-    -- 49678건
+    -- 회원 49678명
+    -- 여기서의 user_id NULL은 로그인 하기 직전의 상태를 의미함.
     SELECT
       user_pseudo_id
     FROM anonymous_device
@@ -52,7 +59,7 @@ AS
     WHERE user_pseudo_id NOT IN (SELECT user_pseudo_id FROM anonymous_device)
   )
   , a_only AS (
-    -- 비회원 3145건
+    -- 비회원 3145명
     SELECT
       user_pseudo_id
     FROM anonymous_device
@@ -82,7 +89,8 @@ AS
 
 
 
-  -- -- 비회원의 행동?
+  -- -- 비회원의 행동
+  -- -- 홈 화면 접속 후 바로 이탈
   -- SELECT DISTINCT
   --   firebase_screen,
   --   event_name
@@ -95,7 +103,6 @@ AS
     *
   FROM `advanced.app_logs_cleaned`
   WHERE user_pseudo_id NOT IN (SELECT user_pseudo_id FROM a_only);
-  -- PARTITION BY event_date
 
 
 END;
