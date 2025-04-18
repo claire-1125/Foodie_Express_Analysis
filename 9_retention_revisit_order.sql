@@ -1,3 +1,7 @@
+
+/* 재방문 유저 내 주문유무에 따른 리텐션 */
+
+
 WITH revisit_ordered_logs AS (
   -- 1) 재방문 유저 중 주문 내역 존재
   SELECT
