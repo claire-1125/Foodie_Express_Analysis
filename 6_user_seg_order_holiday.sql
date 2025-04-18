@@ -4,7 +4,7 @@ BEGIN
 
 CREATE OR REPLACE TABLE advanced.app_logs_target_order_seg AS
 
-/* 주문 내역 여부에 따른 주문수, 연휴 주문수 계산 */
+/* DAU + 주문 유저 수 */
 
 WITH dau_list AS (
   SELECT
@@ -14,7 +14,7 @@ WITH dau_list AS (
   GROUP BY event_date
 )
 , order_cnt_list_d AS (
-  -- 일일 주문 유저 수
+  -- 일별 주문 유저 수
   SELECT
     event_date,
     COUNT(DISTINCT user_id) AS order_users_cnt
@@ -25,22 +25,32 @@ WITH dau_list AS (
 )
 , dau_vs_order_user AS (
   -- DAU와 일별 주문 유저 수 비교
+  -- 주문율 = 일일 방문자 수 대비 일일 주문자 수
   SELECT
     d.event_date,
     d.dau,
     o.order_users_cnt,
-    ROUND(SAFE_DIVIDE(o.order_users_cnt, d.dau) * 100, 3) AS order_ratio
+    ROUND(SAFE_DIVIDE(o.order_users_cnt, d.dau) * 100, 3) AS order_ratio  -- 주문율
   FROM dau_list d
   INNER JOIN order_cnt_list_d o ON d.event_date = o.event_date
 )
 , holiday AS (
-  -- 연휴 정의
+  -- 연휴 정의: 주문율 30% 초과
   SELECT
     event_date
   FROM dau_vs_order_user
   WHERE order_ratio > 30
 )
 
+
+/* 
+전체 유저를 주문 여부에 따라 구분하고 다음을 계산했다. 
+
+- 방문일
+- 주문일 (= 비연휴 주문일 + 연휴 주문일)
+- 비연휴 주문일: 전체 주문일 중 비연휴에 주문한 일자 수
+- 연휴 주문일: 전체 주문일 중 연휴에 주문한 일자 수
+*/
 
 
 -- 주문한 적 있는 유저 11467명
