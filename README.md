@@ -78,9 +78,7 @@ Foodie Express는 가상의 음식 배달 앱 서비스 입니다. 런칭 후 6�
 
 
 #### 3-3. 리텐션  
-- [**방문 주기별 리텐션**](./8_retention_visit_inteval.sql)
-- [**재방문 유저 내 주문유무 리텐션**](./9_retention_revisit_order.sql)
-- [**방문 주기별 코호트 리텐션**](./10_cohort_retention_visit_interval.sql)
+- [**방문 주기, 유입 시기별 리텐션**](./8_retention.sql)
 
 
 <br/>
@@ -96,8 +94,6 @@ Foodie Express는 가상의 음식 배달 앱 서비스 입니다. 런칭 후 6�
 | EDA | 방문 주기, 주문율 등 계산 | [4_eda.sql](./4_eda.sql) |
 | 유저 세분화 | 방문 주기 기반 그룹핑 | [5_user_seg_visit_interval.sql](./5_user_seg_visit_interval.sql) |
 | 주문 | 주문율 계산, 주문유무에 따른 유저별 주문수 계산 | [6_order_calc.sql](./6_order_calc.sql) |
-| 주문 퍼널 | 유입경로별 퍼널 분석 | [7_order_funnel.sql](./7_order_funnel.sql) |
-| 리텐션 | 방문 주기별 리텐션 | [8_retention_visit_inteval.sql](./8_retention_visit_inteval.sql) |
-| 재방문 리텐션 | 재방문 내 주문유무에 따른 리텐션 | [9_retention_revisit_order.sql](./9_retention_revisit_order.sql) |
-| 코호트 리텐션 | 방문 주기 기반 코호트 분석 | [10_cohort_retention_visit_interval.sql](./10_cohort_retention_visit_interval.sql) |
+| 주문 퍼널 | 방문 주기, 유입 시기별 퍼널 분석 | [7_order_funnel.sql](./7_order_funnel.sql) |
+| 리텐션 | 방문 주기, 유입 시기별 리텐션 | [8_retention.sql](./8_retention.sql) |
 | EDA/시각화/통계 | EDA, 가설 검증, 시각화 | [foodie_viz.ipynb](./foodie_viz.ipynb) |
