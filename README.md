@@ -29,6 +29,24 @@ Foodie Express는 가상의 음식 배달 앱 서비스 입니다. 런칭 후 6�
 
 <br/>
 
+## 테이블 스키마
+
+|컬럼명|자료형|
+|---|---|
+|event_date|DATE|
+|event_timestamp|INTEGER|
+|event_name|STRING|
+|event_params|ARRAY|
+|├ key|STRING|
+|└ value|STRUCT|
+|&emsp;├ string_value|STRING|
+|&emsp;└ int_value|INTEGER|
+|user_id|INTEGER|
+|user_pseudo_id|STRING|
+|platform|STRING|
+
+<br/>
+
 ## 분석 프로세스
 
 ### 1. 데이터 정제 
