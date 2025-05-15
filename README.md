@@ -15,7 +15,7 @@
 ## 프로젝트 개요
 
 - **분석 기간:** 2025.03~2025.04 (1.5개월)  
-- **기술 스택:** <img src="https://img.shields.io/badge/BigQuery-669DF6?style=flat-square&logo=BigQuery&logoColor=white"> <img src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=Python&logoColor=white"/> <img src="https://img.shields.io/badge/Seaborn-669DF6.svg?style=plat-sqaure&logo=Seaborn&logoColor=white"/> <img src="https://img.shields.io/badge/plotly-3F4F75.svg?style=plat-sqaure&logo=plotly&logoColor=white"/>
+- **기술 스택:** <img src="https://img.shields.io/badge/BigQuery-669DF6?style=flat-square&logo=BigQuery&logoColor=white"> <img src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=Python&logoColor=white"/> <img src="https://img.shields.io/badge/Seaborn-669DF6.svg?style=plat-sqaure&logo=Seaborn&logoColor=white"/> <img src="https://img.shields.io/badge/Plotly-3F4F75.svg?style=plat-sqaure&logo=plotly&logoColor=white"/> <img src="https://img.shields.io/badge/Looker-4285F4.svg?style=plat-sqaure&logo=looker&logoColor=white"/>
 
 - **목적:** 음식 배달 앱 로그 데이터를 가지고 문제 정의 및 가설 검증을 통해 주문율 개선 전략 도출
 - **원천 데이터:** [가상의 앱 로그 데이터 (73만 건)](https://bit.ly/inflearn_bigquery_advanced)
@@ -97,3 +97,7 @@ Foodie Express는 가상의 음식 배달 앱 서비스 입니다. 런칭 후 6�
 | 주문 퍼널 | 방문 주기, 유입 시기별 퍼널 분석 | [7_order_funnel.sql](./7_order_funnel.sql) |
 | 리텐션 | 방문 주기, 유입 시기별 리텐션 | [8_retention.sql](./8_retention.sql) |
 | EDA/시각화/통계 | EDA, 가설 검증, 시각화 | [foodie_viz.ipynb](./foodie_viz.ipynb) |
+
+
+## 대시보드
+[주문 대시보드](https://lookerstudio.google.com/s/hAXkIDnAHYU)
